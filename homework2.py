@@ -1,47 +1,40 @@
+__author__ = 'Stefane'
 
 import csv
-import sqLite3
+import collections
 
-#DB connection--------------------------------------
+#prints neighborhood : percent of housing crowded
 
-conn = sqLite3.connect(':memory:')
+with open('Census_Data_-_Selected_socioeconomic_indicators_in_Chicago__2008___2012.csv') as csvfile:
+    CensusReader = csv.reader(csvfile, delimiter = ',')
+    CrowdedHousing = {}
+    for row in CensusReader:
+        k = row[1]
+        v = row[2]
+        CrowdedHousing[k] = v
+print (CrowdedHousing)
 
-# cursor--------------------------------------------
+#returns vacant properties neighborhoods
 
-c = conn.cursor()
+def VacantPropery():
+    with open('City-Owned_Land_Inventory.csv') as csvfile:
+        propertyReader = csv.reader(csvfile, delimiter = ',')
+        VacantPropery = []
+        for row in propertyReader:
+            VacantPropery.append(row[7])
+        del VacantPropery[0]
+        return VacantPropery
 
-# executing the table--------------------------------
 def main():
 
-#make table for vacant city owned properties
+#counts hte number of times a neighborhood appears and prints the neighborhood: number of vacant properties that are stored in a list
 
-    c.execute('''CREATE TABLE city_owned
-            (14_Digit_PIN_#,Street_Number,Dir,Street_Name,Type,Sq_Ft,Ward,
-            Community_Area,Zoning_Classification,TIF_District,Location
-    )''' )
+    vacantPropertyAmount = []
 
-#make table for census data
-
-    c.execute('''CREATE TABLE census
-            (Community_Area_Number,
-            COMMUNITY_AREA_NAME,PERCENT_OF_HOUSING_CROWDED,PERCENT_HOUSEHOLDS_BELOW_POVERTY,
-            PERCENT_AGED_16+_UNEMPLOYED,
-            PERCENT_AGED_25+_WITHOUT_HIGH_SCHOOL_DIPLOMA,
-            PERCENT_AGED_UNDER_18_OR_OVER_64,PER_CAPITA_INCOME,HARDSHIP_INDEX
-    )''')
+    vacantPropertyAmount.append(collections.Counter(VacantPropery()))
 
 
-with open('City-Owned_Land_Inventory.csv', 'rb') as cityCSV:
-    dr = csv.DictReader(cityCSV, delimiter=',')
-    to_db = [(i['14_Digit_PIN_#'], i['Street_Number'], i['Dir'], i['Street_Name'], i['Type'],
-              i['Sq_Ft'], i['Ward'], i['Community_Area'], i['Zoning_Classification'],
-              i['TIF_District'], i['Location']) for i in dr]
+    print ("neighborhood: amount of vacant property ", vacantPropertyAmount)
 
-c.executemany('''INSERT INTO cityCSV
-(14_Digit_PIN_#, Street_Number, Dir, Street_Name,
-Type, Sq_Ft, Ward, Community_Area, Zoning_Classification, TIF_District, Location)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''', to_db)
-conn.commit()
 
-for row in dr:
-    print (row())
+main()
